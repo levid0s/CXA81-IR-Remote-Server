@@ -14,23 +14,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 func main() {
 
-	// Load configuration
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	viper.SetConfigType("yaml")
-
-	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s", err))
-	}
-
-	remoteName := viper.GetString("remote_name")
-	localPort := viper.GetString("port")
-	buttonsExcludeRegex := viper.GetString("buttons_exclude_regex")
+	remoteName := getEnv("CXA_REMOTE_LIRC_REMOTE_NAME", "cambridge_cx_remote")
+	localPort := getEnv("CXA_REMOTE_SERVER_PORT", "8080")
+	buttonsExcludeRegex := getEnv("CXA_REMOTE_BUTTONS_EXCLUDE_REGEX", "")
 
 	// get hostname from OS
 	hostname, _ := os.Hostname()
@@ -43,7 +33,7 @@ func main() {
 		commands = getIrCommands(remoteName, nil)
 	}
 
-	fmt.Println("[Web-server] http://" + hostname + "/")
+	fmt.Println("[Web-server] http://" + hostname + ":"+ localPort + "/")
 
 	router := gin.Default()
 	gin.SetMode(gin.ReleaseMode)
@@ -82,6 +72,13 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		fmt.Println("Error during server shutdown:", err)
 	}
+}
+
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
 }
 
 func getIrCommands(remoteName string, buttonsExcludeRegex *string) []string {
