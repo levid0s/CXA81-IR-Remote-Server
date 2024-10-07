@@ -1,3 +1,0 @@
-remote_name: "cambridge_cx_remote"
-port: "80"
-buttons_exclude_regex: "CXN|CXC"
